@@ -869,6 +869,128 @@ textarea:focus {
   border-color: rgba(232, 184, 74, 0.3);
 }
 
+/* ── Emoji Picker ──────────────────────────────────────────────── */
+.emoji-picker-wrapper {
+  position: relative;
+}
+
+#btn-emoji {
+  color: var(--text-secondary);
+}
+
+#btn-emoji:hover {
+  color: #f0cc6e;
+  border-color: rgba(232, 184, 74, 0.3);
+}
+
+#emoji-panel {
+  position: absolute;
+  bottom: 42px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 340px;
+  max-height: 380px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  z-index: 200;
+  overflow: hidden;
+}
+
+#emoji-panel.hidden {
+  display: none;
+}
+
+.emoji-search {
+  padding: 8px 8px 4px;
+}
+
+.emoji-search input {
+  width: 100%;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--text-primary);
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.emoji-search input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+.emoji-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+
+.emoji-tab {
+  background: none;
+  border: none;
+  font-size: 16px;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+
+.emoji-tab:hover {
+  opacity: 0.8;
+  background: var(--surface-1);
+}
+
+.emoji-tab.active {
+  opacity: 1;
+  background: var(--surface-2);
+}
+
+.emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 2px;
+  padding: 8px;
+  overflow-y: auto;
+  flex: 1;
+  max-height: 260px;
+}
+
+.emoji-item {
+  background: none;
+  border: none;
+  font-size: 20px;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.1s, transform 0.1s;
+  line-height: 1;
+  text-align: center;
+}
+
+.emoji-item:hover {
+  background: var(--surface-2);
+  transform: scale(1.2);
+}
+
+.emoji-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 20px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
 #user-input {
   flex: 1;
   min-height: 32px;
