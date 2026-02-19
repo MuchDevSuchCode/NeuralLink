@@ -1,0 +1,15 @@
+{
+  "name": "neural-deck",
+  "version": "1.0.0",
+  "description": "Neural Deck — Electron GUI client for Ollama",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^34.0.0"
+  },
+  "dependencies": {
+    "marked": "^15.0.0"
+  }
+}
