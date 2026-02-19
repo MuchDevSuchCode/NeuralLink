@@ -117,7 +117,7 @@ function clearWelcome() {
     if (welcome) welcome.remove();
 }
 
-function addMessageBubble(role, content, duration, images) {
+function addMessageBubble(role, content, duration, images, files) {
     clearWelcome();
     const wrapper = document.createElement('div');
     wrapper.className = `message-wrapper ${role}`;
@@ -142,6 +142,20 @@ function addMessageBubble(role, content, duration, images) {
             imgContainer.appendChild(imgEl);
         });
         div.appendChild(imgContainer);
+    }
+
+    // Show inline file attachment chips for user messages
+    if (role === 'user' && files && files.length > 0) {
+        const fileContainer = document.createElement('div');
+        fileContainer.className = 'message-files';
+        files.forEach((f) => {
+            const chip = document.createElement('span');
+            chip.className = 'message-file-chip';
+            chip.textContent = `📎 ${f.name}`;
+            chip.title = f.name;
+            fileContainer.appendChild(chip);
+        });
+        div.appendChild(fileContainer);
     }
 
     if (role === 'assistant') {
@@ -264,7 +278,7 @@ async function sendMessage() {
         userMsg.images = images.map((img) => img.base64);
     }
     chatHistory.push(userMsg);
-    addMessageBubble('user', text, undefined, images);
+    addMessageBubble('user', text, undefined, images, files);
     userInput.value = '';
     userInput.style.height = 'auto';
 
@@ -355,14 +369,15 @@ async function sendMessage() {
         if (tokensPerSec) statusText += ` · ${tokensPerSec} tok/s`;
         setStatus(statusText, true);
     } catch (err) {
-        if (err.name === 'AbortError') {
-            // User cancelled
+        const errStr = String(err.message || err).toLowerCase();
+        if (err.name === 'AbortError' || errStr.includes('aborterror') || errStr.includes('abort')) {
+            // User cancelled — no error toast
             if (fullResponse) {
                 chatHistory.push({ role: 'assistant', content: fullResponse });
             }
-            setStatus('Stopped', true);
+            setStatus('Request cancelled', true);
         } else {
-            showError(`Error: ${err.message}`);
+            showError(`Error: ${err.message || 'Unknown error'}`);
             setStatus('Error', true);
             // Remove the broken assistant bubble if empty
             if (!fullResponse) assistantDiv.remove();

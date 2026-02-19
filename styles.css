@@ -816,6 +816,30 @@ textarea:focus {
   object-fit: cover;
 }
 
+/* ── Inline file chips in chat ──────────────────────────────────── */
+.message-files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 6px;
+}
+
+.message-file-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  font-size: 11px;
+  color: var(--amber);
+  background: rgba(232, 184, 74, 0.08);
+  border: 1px solid rgba(232, 184, 74, 0.25);
+  border-radius: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+
 /* ── Input Bar ──────────────────────────────────────────────────── */
 #input-bar {
   display: flex;
