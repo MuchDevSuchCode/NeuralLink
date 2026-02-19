@@ -141,4 +141,9 @@ contextBridge.exposeInMainWorld('ollama', {
     // ── File pickers ─────────────────────────────────────────────
     pickImage: () => ipcRenderer.invoke('dialog:pickImage'),
     pickFile: () => ipcRenderer.invoke('dialog:pickFile'),
+
+    // ── Chat history persistence ─────────────────────────────────
+    saveHistory: (messages, encrypt, key) => ipcRenderer.invoke('history:save', messages, encrypt, key),
+    loadHistory: (encrypt, key) => ipcRenderer.invoke('history:load', encrypt, key),
+    clearHistory: () => ipcRenderer.invoke('history:clear'),
 });

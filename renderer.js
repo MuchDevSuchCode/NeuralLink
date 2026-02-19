@@ -27,6 +27,13 @@ const btnAttachFile = $('#btn-attach-file');
 const attachPreview = $('#attachments-preview');
 const btnEmoji = $('#btn-emoji');
 const emojiPanel = $('#emoji-panel');
+const historyModeEl = $('#history-mode');
+const encryptGroup = $('#encrypt-group');
+const encryptToggle = $('#encrypt-toggle');
+const keyModal = $('#key-modal');
+const keyInput = $('#key-input');
+const keyOk = $('#key-ok');
+const keyCancel = $('#key-cancel');
 const statusText = $('#status-text');
 const statusBar = $('#status-bar');
 
@@ -35,6 +42,7 @@ let chatHistory = []; // { role, content, images? }
 let isGenerating = false;
 let pendingImages = []; // { name, base64 }
 let pendingFiles = [];  // { name, content }
+let encryptionKey = null; // held in memory only, never persisted
 
 // ── Simple markdown renderer ────────────────────────────────────
 function renderMarkdown(text) {
@@ -281,6 +289,7 @@ async function sendMessage() {
         userMsg.images = images.map((img) => img.base64);
     }
     chatHistory.push(userMsg);
+    persistHistory();
     addMessageBubble('user', text, undefined, images, files);
     userInput.value = '';
     userInput.style.height = 'auto';
@@ -347,6 +356,7 @@ async function sendMessage() {
         });
 
         chatHistory.push({ role: 'assistant', content: fullResponse });
+        persistHistory();
         const elapsed = Date.now() - startTime;
 
         // Calculate tokens/sec from Ollama stats
@@ -377,6 +387,7 @@ async function sendMessage() {
             // User cancelled — no error toast
             if (fullResponse) {
                 chatHistory.push({ role: 'assistant', content: fullResponse });
+                persistHistory();
             }
             setStatus('Request cancelled', true);
         } else {
@@ -562,7 +573,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ── Clear chat ──────────────────────────────────────────────────
-btnClear.addEventListener('click', () => {
+btnClear.addEventListener('click', async () => {
     chatHistory = [];
     messagesEl.innerHTML = `
     <div class="welcome-message">
@@ -572,7 +583,98 @@ btnClear.addEventListener('click', () => {
       <h2>Welcome to Neural Deck</h2>
       <p>Connect to your Ollama server, pick a model, and start chatting.</p>
     </div>`;
+    if (historyModeEl.value === 'disk') {
+        await window.ollama.clearHistory();
+    }
     setStatus('Chat cleared', statusBar.classList.contains('connected'));
+});
+
+// ── History persistence helpers ─────────────────────────────────
+function promptForKey() {
+    return new Promise((resolve) => {
+        keyInput.value = '';
+        keyModal.classList.remove('hidden');
+        keyInput.focus();
+
+        function cleanup() {
+            keyModal.classList.add('hidden');
+            keyOk.removeEventListener('click', onOk);
+            keyCancel.removeEventListener('click', onCancel);
+            keyInput.removeEventListener('keydown', onKeyDown);
+        }
+        function onOk() {
+            const val = keyInput.value;
+            cleanup();
+            resolve(val || null);
+        }
+        function onCancel() {
+            cleanup();
+            resolve(null);
+        }
+        function onKeyDown(e) {
+            if (e.key === 'Enter') { e.preventDefault(); onOk(); }
+            if (e.key === 'Escape') { e.preventDefault(); onCancel(); }
+        }
+        keyOk.addEventListener('click', onOk);
+        keyCancel.addEventListener('click', onCancel);
+        keyInput.addEventListener('keydown', onKeyDown);
+    });
+}
+
+async function getEncryptionKey() {
+    if (encryptionKey) return encryptionKey;
+    const key = await promptForKey();
+    if (key) encryptionKey = key;
+    return key;
+}
+
+async function persistHistory() {
+    if (historyModeEl.value !== 'disk') return;
+    const encrypt = encryptToggle.checked;
+    let key = null;
+    if (encrypt) {
+        key = await getEncryptionKey();
+        if (!key) return; // user cancelled
+    }
+    const result = await window.ollama.saveHistory(chatHistory, encrypt, key);
+    if (!result.success) {
+        console.error('Failed to save history:', result.error);
+    }
+}
+
+async function loadDiskHistory() {
+    if (historyModeEl.value !== 'disk') return;
+    const encrypt = encryptToggle.checked;
+    let key = null;
+    if (encrypt) {
+        key = await getEncryptionKey();
+        if (!key) return;
+    }
+    const result = await window.ollama.loadHistory(encrypt, key);
+    if (!result.success) {
+        showError('Failed to decrypt history — wrong passphrase?');
+        encryptionKey = null; // reset so user can retry
+        return;
+    }
+    if (result.messages && result.messages.length > 0) {
+        chatHistory = result.messages;
+        // Re-render all messages
+        clearWelcome();
+        chatHistory.forEach((msg) => {
+            addMessageBubble(msg.role, msg.content);
+        });
+    }
+}
+
+// ── History mode toggle logic ───────────────────────────────────
+historyModeEl.addEventListener('change', () => {
+    encryptGroup.style.display = historyModeEl.value === 'disk' ? '' : 'none';
+    autoSave();
+});
+
+encryptToggle.addEventListener('change', () => {
+    encryptionKey = null; // reset key when toggling
+    autoSave();
 });
 // ── Config persistence ──────────────────────────────────────────
 function gatherSettings() {
@@ -586,6 +688,8 @@ function gatherSettings() {
         chunkSize: chunkSizeEl.value,
         agentName: agentNameEl.value,
         systemPrompt: systemPrompt.value,
+        historyMode: historyModeEl.value,
+        encryptHistory: encryptToggle.checked,
     };
 }
 
@@ -620,6 +724,11 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (cfg.agentName) agentNameEl.value = cfg.agentName;
     if (cfg.systemPrompt) systemPrompt.value = cfg.systemPrompt;
     if (cfg.stream !== undefined) streamToggle.checked = cfg.stream;
+    if (cfg.historyMode) historyModeEl.value = cfg.historyMode;
+    if (cfg.encryptHistory !== undefined) encryptToggle.checked = cfg.encryptHistory;
+
+    // Show/hide encrypt toggle based on history mode
+    encryptGroup.style.display = historyModeEl.value === 'disk' ? '' : 'none';
 
     // Fetch models, then restore saved model selection
     const base = serverUrl.value.replace(/\/+$/, '');
@@ -639,6 +748,11 @@ window.addEventListener('DOMContentLoaded', async () => {
         setStatus('Connection failed');
     } finally {
         btnRefresh.classList.remove('spinning');
+    }
+
+    // Load disk history if in disk mode
+    if (historyModeEl.value === 'disk') {
+        await loadDiskHistory();
     }
 
     // Show config path in console for reference

@@ -56,6 +56,85 @@ ipcMain.handle('dialog:pickFile', async () => {
   });
 });
 
+// ── Chat history persistence ────────────────────────────────────
+const crypto = require('crypto');
+const historyDir = path.join(__dirname, 'chat_history');
+if (!fs.existsSync(historyDir)) {
+  fs.mkdirSync(historyDir, { recursive: true });
+}
+
+const HISTORY_FILE = path.join(historyDir, 'current.json');
+const HISTORY_FILE_ENC = path.join(historyDir, 'current.enc');
+
+function encryptData(plaintext, passphrase) {
+  const salt = crypto.randomBytes(16);
+  const key = crypto.scryptSync(passphrase, salt, 32);
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+  const encrypted = Buffer.concat([cipher.update(plaintext, 'utf-8'), cipher.final()]);
+  const authTag = cipher.getAuthTag();
+  // Format: salt(16) + iv(12) + authTag(16) + ciphertext
+  return Buffer.concat([salt, iv, authTag, encrypted]);
+}
+
+function decryptData(buffer, passphrase) {
+  const salt = buffer.subarray(0, 16);
+  const iv = buffer.subarray(16, 28);
+  const authTag = buffer.subarray(28, 44);
+  const ciphertext = buffer.subarray(44);
+  const key = crypto.scryptSync(passphrase, salt, 32);
+  const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
+  decipher.setAuthTag(authTag);
+  const decrypted = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
+  return decrypted.toString('utf-8');
+}
+
+ipcMain.handle('history:save', (_event, messages, encrypt, passphrase) => {
+  try {
+    const json = JSON.stringify(messages, null, 2);
+    if (encrypt && passphrase) {
+      const encrypted = encryptData(json, passphrase);
+      fs.writeFileSync(HISTORY_FILE_ENC, encrypted);
+      // Remove unencrypted file if it exists
+      if (fs.existsSync(HISTORY_FILE)) fs.unlinkSync(HISTORY_FILE);
+    } else {
+      fs.writeFileSync(HISTORY_FILE, json, 'utf-8');
+      // Remove encrypted file if it exists
+      if (fs.existsSync(HISTORY_FILE_ENC)) fs.unlinkSync(HISTORY_FILE_ENC);
+    }
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('history:load', (_event, encrypt, passphrase) => {
+  try {
+    if (encrypt && passphrase) {
+      if (!fs.existsSync(HISTORY_FILE_ENC)) return { success: true, messages: [] };
+      const buffer = fs.readFileSync(HISTORY_FILE_ENC);
+      const json = decryptData(buffer, passphrase);
+      return { success: true, messages: JSON.parse(json) };
+    } else {
+      if (!fs.existsSync(HISTORY_FILE)) return { success: true, messages: [] };
+      const json = fs.readFileSync(HISTORY_FILE, 'utf-8');
+      return { success: true, messages: JSON.parse(json) };
+    }
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('history:clear', () => {
+  try {
+    if (fs.existsSync(HISTORY_FILE)) fs.unlinkSync(HISTORY_FILE);
+    if (fs.existsSync(HISTORY_FILE_ENC)) fs.unlinkSync(HISTORY_FILE_ENC);
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
 function createWindow() {
   const win = new BrowserWindow({
     width: 1100,

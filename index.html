@@ -98,6 +98,26 @@
         <p class="param-hint">Stream tokens in real-time vs. wait for full response</p>
       </div>
 
+      <h2>History</h2>
+
+      <div class="param-group">
+        <label for="history-mode">History Storage</label>
+        <select id="history-mode">
+          <option value="memory">Memory</option>
+          <option value="disk">Disk</option>
+        </select>
+        <p class="param-hint">Memory: lost on close. Disk: persisted locally</p>
+      </div>
+
+      <div class="param-group toggle-group" id="encrypt-group" style="display:none;">
+        <label for="encrypt-toggle">Encrypt History</label>
+        <label class="toggle-switch">
+          <input type="checkbox" id="encrypt-toggle" />
+          <span class="toggle-slider"></span>
+        </label>
+        <p class="param-hint">AES-256-GCM encryption with your passphrase</p>
+      </div>
+
       <div class="param-group">
         <label for="chunk-size">Chunk Size</label>
         <input type="number" id="chunk-size" min="1" max="4096" value="512" />
@@ -173,6 +193,19 @@
 
   <div id="status-bar">
     <span id="status-text">Disconnected</span>
+  </div>
+
+  <!-- Encryption Key Modal -->
+  <div id="key-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <h3>🔐 Encryption Passphrase</h3>
+      <p class="modal-hint">Enter your passphrase for chat history encryption. This is never stored on disk.</p>
+      <input type="password" id="key-input" placeholder="Enter passphrase…" spellcheck="false" autocomplete="off" />
+      <div class="modal-actions">
+        <button id="key-cancel" class="btn-modal btn-modal-cancel">Cancel</button>
+        <button id="key-ok" class="btn-modal btn-modal-ok">OK</button>
+      </div>
+    </div>
   </div>
 
   <script src="renderer.js"></script>
