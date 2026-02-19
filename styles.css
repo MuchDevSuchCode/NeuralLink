@@ -476,10 +476,9 @@ textarea:focus {
 }
 
 .welcome-icon img {
-  width: 180px;
-  height: 180px;
+  width: 450px;
+  height: 450px;
   object-fit: contain;
-  border-radius: 16px;
   opacity: 0.85;
 }
 

@@ -460,7 +460,7 @@ btnClear.addEventListener('click', () => {
     messagesEl.innerHTML = `
     <div class="welcome-message">
       <div class="welcome-icon">
-        <img src="ndlogo.jpg" alt="Neural Deck" />
+        <img src="ndlogo.png" alt="Neural Deck" />
       </div>
       <h2>Welcome to Neural Deck</h2>
       <p>Connect to your Ollama server, pick a model, and start chatting.</p>

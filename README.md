@@ -64,7 +64,7 @@ neural-deck/
 ├── renderer.js      # Frontend logic (chat, markdown, attachments, settings)
 ├── index.html       # App layout & structure
 ├── styles.css       # Terminal-themed styling
-├── ndlogo.jpg       # App logo
+├── ndlogo.png       # App logo
 └── package.json
 ```
 
