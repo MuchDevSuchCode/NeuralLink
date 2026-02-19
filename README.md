@@ -9,6 +9,9 @@ A sleek Electron desktop client for [Ollama](https://ollama.com) with a Linux te
 <p>
   <img src="screenshot1.png" alt="Neural Deck" width="600" />
   <img src="screenshot2.png" alt="Neural Deck Chat" width="600" />
+  <img src="screenshot3.png" alt="Neural Deck Settings" width="600" />
+  <img src="screenshot4.png" alt="Neural Deck Hack Sim" width="600" />
+  <img src="screenshot5.png" alt="Neural Deck Hack Output" width="600" />
 </p>
 
 ## Features
@@ -17,6 +20,7 @@ A sleek Electron desktop client for [Ollama](https://ollama.com) with a Linux te
 - **Vision model detection** — 👁 icon in the model dropdown for models with image capabilities
 - **Image & file attachments** — attach images (base64 for vision models) or text files to your prompts; attached files display as chips in the chat history
 - **Emoji picker** — built-in emoji panel with 8 categorized tabs and search
+- **Hack simulation** — built-in slash commands that play animated terminal-style hacking sequences
 - **System prompt modes** — Default (Sojourner persona), None, or Custom with your own prompt
 - **Persistent chat history** — choose between in-memory or disk-based history storage
 - **Encrypted history** — optional AES-256-GCM encryption for disk-stored conversations
@@ -54,7 +58,8 @@ The app will auto-connect to `http://localhost:11434` and fetch available models
 3. **Chat** — type a message and press Enter or click Send
 4. **Attach files** — use the 📷 (image) or 📎 (file) buttons next to the input
 5. **Emoji** — click the 😊 smiley button to open the emoji picker; click any emoji to insert it at your cursor
-6. **Tune parameters** — open the settings sidebar with the gear icon
+6. **Hack sim** — type a `/` command to run a simulated hacking sequence (see below)
+7. **Tune parameters** — open the settings sidebar with the gear icon
 
 ### Keyboard Shortcuts
 
@@ -63,6 +68,29 @@ The app will auto-connect to `http://localhost:11434` and fetch available models
 | `Enter` | Send message |
 | `Shift+Enter` | New line in input |
 | `Escape` | Close emoji picker / encryption key modal |
+
+## Hack Simulation
+
+Type slash commands in the chat input to trigger animated, Shadowrun-themed hacking sequences. These bypass the LLM entirely — no model selection required.
+
+| Command | Description |
+|---------|-------------|
+| `/hack <target>` | Multi-phase corporate host breach — recon, ICE bypass, data extraction, cleanup |
+| `/scan [target]` | Network reconnaissance — port scanning, service enumeration, host fingerprinting |
+| `/trace <ip>` | Trace a Matrix datatrail hop-by-hop to a physical location |
+| `/decrypt <file>` | Cryptanalysis and brute-force decryption of an encrypted payload |
+| `/nuke <target>` | Data bombardment attack — multi-wave assault, ICE collapse, host destruction |
+| `/help` | List all available commands |
+
+All arguments are optional — random Shadowrun-themed targets are generated when omitted. Every run is randomized with different megacorps, ICE types, ports, files, and locations.
+
+**Animation features:**
+- Character-by-character typing effects
+- Animated progress bars (`[████░░░░░░] 42%`)
+- Scrolling hex dumps
+- Spinning braille-character indicators
+- Color-coded status lines (`[OK]` / `[WARN]` / `[FAIL]`)
+- Blinking alert text for critical events
 
 ## System Prompt
 
@@ -101,15 +129,16 @@ When the **Encrypt History** toggle is enabled (only visible in Disk mode), chat
 
 ```
 neural-deck/
-├── main.js          # Electron main process (window, IPC, file dialogs, crypto)
-├── preload.js       # Bridge between main & renderer (Ollama API, history IPC)
-├── renderer.js      # Frontend logic (chat, markdown, attachments, emoji, history)
-├── index.html       # App layout & structure
-├── styles.css       # Terminal-themed styling
-├── ndlogo.png       # App logo (welcome screen)
-├── ndicon.png       # App icon (top bar)
-├── .gitignore       # Excludes node_modules/ and chat_history/
-├── chat_history/    # Auto-created; stores persisted conversations
+├── main.js            # Electron main process (window, IPC, file dialogs, crypto)
+├── preload.js         # Bridge between main & renderer (Ollama API, history IPC)
+├── renderer.js        # Frontend logic (chat, markdown, attachments, emoji, history)
+├── hack-commands.js   # Simulated hacking command engine & animations
+├── index.html         # App layout & structure
+├── styles.css         # Terminal-themed styling
+├── ndlogo.png         # App logo (welcome screen)
+├── ndicon.png         # App icon (top bar)
+├── .gitignore         # Excludes node_modules/ and chat_history/
+├── chat_history/      # Auto-created; stores persisted conversations
 └── package.json
 ```
 

@@ -290,6 +290,35 @@ async function sendMessage() {
     const text = userInput.value.trim();
     if (!text || isGenerating) return;
 
+    // ── Hack command interception ───────────────────────────────
+    if (window.hackCommands && window.hackCommands.isCommand(text)) {
+        clearWelcome();
+        userInput.value = '';
+        userInput.style.height = 'auto';
+        addMessageBubble('user', text);
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'message-wrapper assistant';
+        const nameLabel = document.createElement('span');
+        nameLabel.className = 'message-name';
+        nameLabel.textContent = agentNameEl.value || 'Sojourner';
+        wrapper.appendChild(nameLabel);
+        const hackDiv = document.createElement('div');
+        hackDiv.className = 'message assistant';
+        wrapper.appendChild(hackDiv);
+        messagesEl.appendChild(wrapper);
+
+        isGenerating = true;
+        btnSend.disabled = true;
+        setStatus('Executing command…');
+        await window.hackCommands.tryRun(text, hackDiv);
+        isGenerating = false;
+        btnSend.disabled = false;
+        setStatus('Command complete', true);
+        userInput.focus();
+        return;
+    }
+
     const model = modelSelect.value;
     if (!model) {
         showError('Please select a model first.');
