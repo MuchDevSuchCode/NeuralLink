@@ -1299,6 +1299,45 @@ textarea:focus {
   color: var(--accent);
 }
 
+/* ── Custom Confirmation Modal ──────────────────────────────────── */
+.confirm-card {
+  border-color: var(--danger);
+  box-shadow: 0 0 20px rgba(240, 80, 80, 0.2);
+  max-width: 400px;
+}
+
+.confirm-card h3 {
+  color: var(--danger);
+  text-shadow: 0 0 5px rgba(240, 80, 80, 0.5);
+  font-size: 16px;
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.confirm-card .modal-hint {
+  font-size: 14px;
+  color: var(--text-primary);
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.confirm-card .btn-danger {
+  background: rgba(240, 80, 80, 0.1);
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  padding: 8px 20px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.confirm-card .btn-danger:hover {
+  background: rgba(240, 80, 80, 0.2);
+  box-shadow: 0 0 15px rgba(240, 80, 80, 0.4);
+}
+
 .hack-dim {
   color: var(--text-muted);
 }

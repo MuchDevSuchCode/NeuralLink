@@ -176,9 +176,45 @@ function showError(msg) {
     setTimeout(() => toast.remove(), 3500);
 }
 
+// ── Custom Confirmation Modal ───────────────────────────────────
+const confirmModal = $('#confirm-modal');
+const confirmTitle = $('#confirm-title');
+const confirmMessage = $('#confirm-message');
+const confirmOk = $('#confirm-ok');
+const confirmCancel = $('#confirm-cancel');
+
+function showConfirmation(title, message) {
+    return new Promise((resolve) => {
+        confirmTitle.textContent = title;
+        confirmMessage.innerHTML = message;
+        confirmModal.classList.remove('hidden');
+
+        function cleanup() {
+            confirmModal.classList.add('hidden');
+            confirmOk.removeEventListener('click', onOk);
+            confirmCancel.removeEventListener('click', onCancel);
+        }
+        function onOk() {
+            cleanup();
+            resolve(true);
+        }
+        function onCancel() {
+            cleanup();
+            resolve(false);
+        }
+        confirmOk.addEventListener('click', onOk);
+        confirmCancel.addEventListener('click', onCancel);
+    });
+}
+
 // ── Reset Config ────────────────────────────────────────────────
 btnReset.addEventListener('click', async () => {
-    if (confirm('⚠️ WARNING: RESET ALL PROTOCOLS TO FACTORY DEFAULTS? ⚠️\n\nThis will clear all custom settings and reload the interface.')) {
+    const confirmed = await showConfirmation(
+        '⚠️ DANGER: RESET PROTOCOLS',
+        'This will wipe all custom settings and restore factory defaults.<br><br>Are you sure you want to execute this command?'
+    );
+
+    if (confirmed) {
         showLoader('RESETTING PROTOCOLS...');
 
         // Reset inputs

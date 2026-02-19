@@ -236,7 +236,19 @@
       <input type="password" id="key-input" placeholder="Enter passphrase…" spellcheck="false" autocomplete="off" />
       <div class="modal-actions">
         <button id="key-cancel" class="btn-modal btn-modal-cancel">Cancel</button>
-        <button id="key-ok" class="btn-modal btn-modal-ok">OK</button>
+        <button id="key-ok" class="btn-modal btn-modal-ok">Unlock</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div id="confirm-modal" class="modal-overlay hidden">
+    <div class="modal-card confirm-card">
+      <h3 id="confirm-title">⚠️ CONFIRM ACTION</h3>
+      <p id="confirm-message" class="modal-hint">Are you sure you want to proceed?</p>
+      <div class="modal-actions">
+        <button id="confirm-cancel" class="btn-modal btn-modal-cancel">ABORT</button>
+        <button id="confirm-ok" class="btn-modal btn-danger">EXECUTE</button>
       </div>
     </div>
   </div>
