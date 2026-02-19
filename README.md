@@ -31,7 +31,7 @@ A sleek Electron desktop client for [Ollama](https://ollama.com) with a Linux te
 
 ```bash
 # Clone / copy the project
-git clone <repo-url> neural-deck
+git clone <git@github.com:MuchDevSuchCode/NeuralLink.git> neural-deck
 cd neural-deck
 
 # Install dependencies

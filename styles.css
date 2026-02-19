@@ -571,20 +571,21 @@ textarea:focus {
   color: var(--text-primary);
   border: 1px solid var(--border);
   border-bottom-left-radius: 3px;
+  position: relative;
+  padding-left: 22px;
 }
 
 /* Prompt-style prefix on assistant messages */
 .message.assistant::before {
   content: '';
-  display: inline-block;
+  position: absolute;
+  left: 10px;
+  top: 14px;
   width: 6px;
   height: 6px;
   background: var(--accent);
   border-radius: 50%;
-  margin-right: 8px;
-  vertical-align: middle;
   box-shadow: 0 0 4px var(--accent-glow);
-  flex-shrink: 0;
 }
 
 /* ── Markdown in assistant bubbles ──────────────────────────────── */
