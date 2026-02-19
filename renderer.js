@@ -1099,18 +1099,54 @@ providerSelect.addEventListener('change', () => {
         const urlObj = new URL(currentUrl);
         const targetPort = providerSelect.value === 'lmstudio' ? '1234' : '11434';
 
-        // Update port
-        urlObj.port = targetPort;
-
-        // Update field
-        serverUrl.value = urlObj.toString().replace(/\/$/, ''); // remove trailing slash
+        if (urlObj.port !== targetPort) {
+            urlObj.port = targetPort;
+            // Remove trailing slash if present
+            serverUrl.value = urlObj.toString().replace(/\/$/, '');
+            autoSave(); // Save the new URL
+        }
+        // Force VRAM UI update
+        updateVRAM();
     } catch (e) {
-        // Fallback if parsing fails
-        const PROVIDER_DEFAULTS = { ollama: 'http://localhost:11434', lmstudio: 'http://localhost:1234' };
-        serverUrl.value = PROVIDER_DEFAULTS[providerSelect.value];
+        console.error('URL parsing failed during provider switch', e);
     }
-    autoSave();
 });
+
+
+// ── Model Preloader / State Manager ─────────────────────────────
+modelSelect.addEventListener('change', async () => {
+    autoSave();
+    const model = modelSelect.value;
+    if (!model) return;
+
+    // Show loader immediately
+    showLoader(`INITIALIZING ${model.toUpperCase()}...`);
+
+    // reset VRAM display to show it's updating
+    if (vramCount) vramCount.textContent = '...';
+
+    // Send a warmup request to force-load the model into VRAM
+    try {
+        const base = serverUrl.value.replace(/\/+$/, '');
+        // We use a generate request with empty prompt to trigger load
+        // "keep_alive" defaults to 5m usually, which is fine.
+        await fetch(`${base}/api/generate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model: model, prompt: '' })
+        });
+
+        // After warmup, check VRAM immediately
+        await updateVRAM();
+
+    } catch (e) {
+        console.warn('Model warmup failed', e);
+    } finally {
+        // Hide loader after a short delay to ensure visual feedback
+        setTimeout(hideLoader, 500);
+    }
+});
+
 
 promptModeEl.addEventListener('change', () => {
     customPromptGroup.style.display = promptModeEl.value === 'custom' ? '' : 'none';
@@ -1173,3 +1209,46 @@ window.addEventListener('DOMContentLoaded', async () => {
     const cfgPath = await window.ollama.getConfigPath();
     console.log(`Config file: ${cfgPath}`);
 });
+
+// ── VRAM Monitoring ─────────────────────────────────────────────
+const vramDisplay = document.getElementById('vram-display');
+const vramCount = document.getElementById('vram-count');
+
+async function updateVRAM() {
+    const provider = providerSelect.value;
+    if (provider !== 'ollama') {
+        if (vramDisplay) vramDisplay.style.display = 'none';
+        return;
+    }
+
+    try {
+        const base = serverUrl.value.replace(/\/+$/, '');
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000); // 2s timeout
+
+        const res = await fetch(`${base}/api/ps`, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        if (!res.ok) throw new Error('Failed');
+        const data = await res.json();
+
+        let totalBytes = 0;
+        if (data.models && Array.isArray(data.models)) {
+            totalBytes = data.models.reduce((acc, m) => acc + (m.size_vram || 0), 0);
+        }
+
+        if (vramCount && vramDisplay) {
+            const gb = (totalBytes / (1024 * 1024 * 1024)).toFixed(1);
+            vramCount.textContent = `${gb} GB`;
+            vramDisplay.style.display = 'flex';
+        }
+    } catch (e) {
+        // console.warn('VRAM Check failed', e);
+        if (vramCount) vramCount.textContent = '--';
+    }
+}
+
+// Poll every 5 seconds
+setInterval(updateVRAM, 5000);
+// Initial check after a short delay
+setTimeout(updateVRAM, 1000);

@@ -106,6 +106,32 @@ body {
   gap: 8px;
 }
 
+
+.vram-stat {
+  margin-right: 15px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  border: 1px solid var(--border-color);
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vram-icon {
+  color: var(--accent-color);
+  font-weight: bold;
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+}
+
+#vram-count {
+  color: var(--text-color);
+}
+
 .brand-icon {
   width: 20px;
   height: 20px;
