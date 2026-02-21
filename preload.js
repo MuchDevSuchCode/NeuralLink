@@ -335,4 +335,7 @@ contextBridge.exposeInMainWorld('ollama', {
     webTime: (location) => ipcRenderer.invoke('web:time', location),
     webIP: (address) => ipcRenderer.invoke('web:ip', address),
     webSearch: (query) => ipcRenderer.invoke('web:search', query),
+
+    // ── SSH connections ──────────────────────────────────────────
+    sshConnect: (host, user, key) => ipcRenderer.invoke('ssh:connect', host, user, key),
 });

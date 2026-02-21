@@ -253,6 +253,44 @@ ipcMain.handle('web:search', async (_event, query) => {
   }
 });
 
+// ── SSH handler ───────────────────────────────────────────────
+const { exec } = require('child_process');
+
+ipcMain.handle('ssh:connect', async (_event, host, username, privateKeyPath) => {
+  return new Promise((resolve) => {
+    let keyArg = '';
+    if (privateKeyPath) {
+      let keyPath = privateKeyPath;
+      if (keyPath.startsWith('~')) {
+        keyPath = path.join(require('os').homedir(), keyPath.slice(1));
+      }
+      keyArg = `-i "${keyPath}"`;
+    }
+
+    // Run a simple command over SSH to validate connection and fetch basic banner/OS info
+    // -o BatchMode=yes prevents password prompts from hanging the process
+    // -o StrictHostKeyChecking=no auto-accepts new host keys
+    const cmd = `ssh -v -o BatchMode=yes -o StrictHostKeyChecking=no ${keyArg} ${username}@${host} "cat /etc/os-release || uname -a"`;
+
+    exec(cmd, { timeout: 15000 }, (error, stdout, stderr) => {
+      // The -v flag prints banner info to stderr. We can extract it or just return both.
+      const output = (stdout + '\n' + stderr).trim();
+
+      if (error) {
+        // Did we actually connect but the command failed, or did connection fail?
+        if (error.code === 255) {
+          resolve({ success: false, error: 'SSH Connection Failed (Code 255):\n' + stderr });
+        } else {
+          resolve({ success: true, banner: 'Connected with errors:\n' + output });
+        }
+      } else {
+        // Success
+        resolve({ success: true, banner: output });
+      }
+    });
+  });
+});
+
 function createWindow() {
   const win = new BrowserWindow({
     width: 1100,

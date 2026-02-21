@@ -58,6 +58,25 @@
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+body.red-theme {
+  --bg-primary: #0a0505;
+  --bg-secondary: #140a0a;
+  --bg-tertiary: #1c0e0e;
+  --bg-glass: rgba(16, 8, 8, 0.92);
+  --bg-glass-hover: rgba(24, 12, 12, 0.95);
+  --surface-1: #1f0f0f;
+  --surface-2: #2b1515;
+  --surface-3: #381a1a;
+  --accent: #f05050;
+  --accent-glow: rgba(240, 80, 80, 0.25);
+  --accent-dim: #c84040;
+  --accent-bright: #ff6b6b;
+  --text-accent: #ff6b6b;
+  --border-active: rgba(240, 80, 80, 0.3);
+  --user-bubble: linear-gradient(135deg, #6b2a2a 0%, #4a1e1e 100%);
+  --success: #f05050;
+}
+
 html,
 body {
   height: 100%;

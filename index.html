@@ -157,6 +157,22 @@
         <textarea id="system-prompt" rows="6" placeholder="Enter your custom system prompt…"></textarea>
       </div>
 
+      <div id="ssh-config-group" style="display:none;">
+        <h2>SSH Configuration</h2>
+        <div class="param-group">
+          <label for="ssh-host">SSH Host</label>
+          <input type="text" id="ssh-host" placeholder="e.g. 192.168.1.100" />
+        </div>
+        <div class="param-group">
+          <label for="ssh-user">SSH Username</label>
+          <input type="text" id="ssh-user" placeholder="e.g. root" />
+        </div>
+        <div class="param-group">
+          <label for="ssh-key">SSH Key</label>
+          <input type="text" id="ssh-key" placeholder="e.g. ~/.ssh/id_rsa" />
+        </div>
+      </div>
+
       <button id="btn-clear" class="btn-secondary">Clear Chat</button>
       <button id="btn-reset" class="btn-secondary btn-danger" style="margin-top: 10px;">Reset Protocols</button>
     </aside>

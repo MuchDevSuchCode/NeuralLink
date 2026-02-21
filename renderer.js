@@ -44,6 +44,11 @@ const statusBar = $('#status-bar');
 const loaderOverlay = $('#loader-overlay');
 const loaderText = $('#loader-text');
 
+const sshConfigGroup = $('#ssh-config-group');
+const sshHost = $('#ssh-host');
+const sshUser = $('#ssh-user');
+const sshKey = $('#ssh-key');
+
 function showLoader(text = 'PROCESSING...') {
     loaderText.textContent = text;
     loaderOverlay.classList.add('active');
@@ -74,7 +79,11 @@ const DEFAULT_SETTINGS = {
     systemPrompt: '', // will fallback to default logic
     promptMode: 'default',
     historyMode: 'memory',
-    encryptHistory: false
+    encryptHistory: false,
+    sshHost: '',
+    sshUser: '',
+    sshKey: '',
+    isRedTheme: false
 };
 
 // ... existing code ...
@@ -241,6 +250,12 @@ btnReset.addEventListener('click', async () => {
         encryptToggle.checked = DEFAULT_SETTINGS.encryptHistory;
         encryptGroup.style.display = 'none';
 
+        sshHost.value = DEFAULT_SETTINGS.sshHost;
+        sshUser.value = DEFAULT_SETTINGS.sshUser;
+        sshKey.value = DEFAULT_SETTINGS.sshKey;
+        document.body.classList.remove('red-theme');
+        sshConfigGroup.style.display = 'none';
+
         // Save defaults
         await window.ollama.saveConfig(gatherSettings());
 
@@ -405,6 +420,74 @@ btnRefresh.addEventListener('click', async () => {
 async function sendMessage() {
     const text = userInput.value.trim();
     if (!text || isGenerating) return;
+
+    if (text === '/RedTeamerz') {
+        clearWelcome();
+        userInput.value = '';
+        userInput.style.height = 'auto';
+        addMessageBubble('user', text);
+
+        document.body.classList.add('red-theme');
+        sshConfigGroup.style.display = 'block';
+        autoSave();
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'message-wrapper assistant';
+        const nameLabel = document.createElement('span');
+        nameLabel.className = 'message-name';
+        nameLabel.textContent = 'SYSTEM';
+        wrapper.appendChild(nameLabel);
+        const redDiv = document.createElement('div');
+        redDiv.className = 'message assistant';
+        redDiv.innerHTML = renderMarkdown("> **RED TEAM MODE ACTIVATED**\n> Framework deployed. Configure SSH targets in the settings panel to begin real penetration testing.");
+        wrapper.appendChild(redDiv);
+        messagesEl.appendChild(wrapper);
+        scrollToBottom();
+        return;
+    }
+
+    if (text === '/connect') {
+        clearWelcome();
+        userInput.value = '';
+        userInput.style.height = 'auto';
+        addMessageBubble('user', text);
+
+        isGenerating = true;
+        btnSend.disabled = true;
+        setStatus('Connecting to remote host...');
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'message-wrapper assistant';
+        const nameLabel = document.createElement('span');
+        nameLabel.className = 'message-name';
+        nameLabel.textContent = 'SYSTEM';
+        wrapper.appendChild(nameLabel);
+        const termDiv = document.createElement('div');
+        termDiv.className = 'message assistant';
+        termDiv.innerHTML = `<div class="typing-indicator"><span></span><span></span><span></span></div>`;
+        wrapper.appendChild(termDiv);
+        messagesEl.appendChild(wrapper);
+        scrollToBottom();
+
+        const host = sshHost.value;
+        const user = sshUser.value;
+        const key = sshKey.value;
+
+        window.ollama.sshConnect(host, user, key).then((result) => {
+            isGenerating = false;
+            btnSend.disabled = false;
+            setStatus('Connection attempt complete', true);
+
+            if (result.success) {
+                termDiv.innerHTML = renderMarkdown(`> **CONNECTION SUCCESSFUL**\n> Target: ${host}\n> User: ${user}\n\n**BANNER / OUTPUT:**\n\`\`\`\n${result.banner}\n\`\`\``);
+            } else {
+                termDiv.innerHTML = renderMarkdown(`> **CONNECTION FAILED**\n> Target: ${host}\n> ERROR: ${result.error}`);
+            }
+            scrollToBottom();
+            userInput.focus();
+        });
+        return;
+    }
 
     // ── Hack command interception ───────────────────────────────
     if (window.hackCommands && window.hackCommands.isCommand(text)) {
@@ -1067,6 +1150,10 @@ function gatherSettings() {
         promptMode: promptModeEl.value,
         historyMode: historyModeEl.value,
         encryptHistory: encryptToggle.checked,
+        sshHost: sshHost.value,
+        sshUser: sshUser.value,
+        sshKey: sshKey.value,
+        isRedTheme: document.body.classList.contains('red-theme')
     };
 }
 
@@ -1079,7 +1166,7 @@ function autoSave() {
 }
 
 // Listen for changes on all settings controls
-[serverUrl, maxTokensEl, ctxLengthEl, chunkSizeEl, agentNameEl, systemPrompt].forEach((el) => {
+[serverUrl, maxTokensEl, ctxLengthEl, chunkSizeEl, agentNameEl, systemPrompt, sshHost, sshUser, sshKey].forEach((el) => {
     el.addEventListener('input', autoSave);
 });
 tempSlider.addEventListener('input', autoSave);
@@ -1174,6 +1261,11 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (cfg.webTools !== undefined) webtoolsToggle.checked = cfg.webTools;
     if (cfg.historyMode) historyModeEl.value = cfg.historyMode;
     if (cfg.encryptHistory !== undefined) encryptToggle.checked = cfg.encryptHistory;
+
+    if (cfg.sshHost) sshHost.value = cfg.sshHost;
+    if (cfg.sshUser) sshUser.value = cfg.sshUser;
+    if (cfg.sshKey) sshKey.value = cfg.sshKey;
+    // RedTeamerz mode visibility should not persist across UI reloading
 
     // Show/hide encrypt toggle based on history mode
     encryptGroup.style.display = historyModeEl.value === 'disk' ? '' : 'none';
